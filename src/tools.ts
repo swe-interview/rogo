@@ -68,7 +68,7 @@ export const toolSchemas: Anthropic.Tool[] = [
 
 /* IDEA: search by fuzzy matching the company name aka allow for regex searching */
 async function searchCompanies(query: string) {
-  await sleep(250);
+  // await sleep(250);
   const needle = String(query).toLowerCase();
   const matches = companies.filter((c) => c.name.toLowerCase().includes(needle));
   return matches.map((c) => ({
@@ -79,7 +79,7 @@ async function searchCompanies(query: string) {
 }
 
 async function getCompanyProfile(company: string) {
-  await sleep(450);
+  // await sleep(450);
   const match = companies.find((c) => c.name === company);
   if (!match) {
     throw new ToolError(`no profile found for "${company}"`);
@@ -89,7 +89,7 @@ async function getCompanyProfile(company: string) {
 
 /* IDEA: drop provenance section not useful */
 async function getFinancials(company: string) {
-  await sleep(800);
+  // await sleep(800);
   const record = financials.find((f) => f.company === company);
   if (!record) {
     throw new ToolError(`no financials found for "${company}"`);
@@ -100,7 +100,7 @@ async function getFinancials(company: string) {
 /* IDEA: tool for searching for documents related to filings a company has */
 /* IDEA: we should allow getting all docs for a company */
 async function searchDocuments(query: string, company?: string) {
-  await sleep(700);
+  // await sleep(700);
 
   const terms = String(query).trim().split(/\s+/).filter(Boolean);
   // The upstream document index rejects long queries.

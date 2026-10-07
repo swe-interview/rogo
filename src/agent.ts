@@ -29,8 +29,10 @@ const EDITOR_PROMPT = `You are an editor. Rewrite the analyst's draft answer so 
 
 export type AgentEvent =
   | { type: "iteration"; n: number }
+  | { type: "llm_response_start" }
+  | { type: "llm_response_end"; response: Anthropic.Message }
   | { type: "tool_start"; name: string; input: unknown }
-  | { type: "tool_end"; name: string; ms: number }
+  | { type: "tool_end"; name: string; content: string }
   | { type: "tool_failed"; name: string; message: string };
 
 export interface AgentResult {
@@ -58,6 +60,7 @@ export async function runAgent(
     iterations++;
     onEvent({ type: "iteration", n: iterations });
 
+    onEvent({ type: "llm_response_start" });
     const llm_response = await anthropicClient.messages.create({
       model: MODEL,
       max_tokens: 16000,
@@ -65,6 +68,7 @@ export async function runAgent(
       tools: toolSchemas,
       messages,
     });
+    onEvent({ type: "llm_response_end", response: llm_response });
 
     messages.push({ role: Role.assistant, content: llm_response.content });
 
@@ -80,7 +84,6 @@ export async function runAgent(
     const toolResults: Anthropic.ToolResultBlockParam[] = [];
 
     for (const use of toolUses) {
-      const startedAt = Date.now();
       onEvent({ type: "tool_start", name: use.name, input: use.input });
 
       let content: string;
@@ -93,7 +96,7 @@ export async function runAgent(
         onEvent({ type: "tool_failed", name: use.name, message });
       }
 
-      onEvent({ type: "tool_end", name: use.name, ms: Date.now() - startedAt });
+      onEvent({ type: "tool_end", name: use.name, content });
       toolResults.push({ type: "tool_result", tool_use_id: use.id, content });
     }
 
