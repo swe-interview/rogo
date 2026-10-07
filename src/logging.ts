@@ -33,11 +33,11 @@ export function logAgentEvent(event: AgentEvent): void {
       console.log(`${time} [agent] iteration ${event.n}`);
       break;
     case "llm_response_start":
-      console.log(`${time} [llm] response start`);
+      console.log(`${time} [llm] ${event.agent_type} response start`);
       break;
     case "llm_response_end":
       console.log(
-        `${time} [llm] response end\n${JSON.stringify(event.response, null, 2)}`,
+        `${time} [llm] ${event.agent_type} response end\n${JSON.stringify(event.response, null, 2)}`,
       );
       break;
     case "tool_start":

@@ -12,7 +12,7 @@ const MAX_ITERATIONS = 12;
 
 const anthropicClient = new Anthropic();
 
-const SYSTEM_PROMPT = `You are Rogo Research, an assistant that answers questions about companies for financial analysts.
+const RESEARCH_AGENT_PROMPT = `You are Rogo Research, an assistant that answers questions about companies for financial analysts.
 
 Use the tools to look up companies, profiles, financials and source documents. Answer the analyst's question.
 
@@ -27,10 +27,12 @@ ${companies
 
 const EDITOR_PROMPT = `You are an editor. Rewrite the analyst's draft answer so that it reads clearly and is easy to follow. Keep it brief and conversational. Return only the rewritten answer.`;
 
+export type AgentType = "research_agent" | "editor";
+
 export type AgentEvent =
   | { type: "iteration"; n: number }
-  | { type: "llm_response_start" }
-  | { type: "llm_response_end"; response: Anthropic.Message }
+  | { type: "llm_response_start"; agent_type: AgentType }
+  | { type: "llm_response_end"; agent_type: AgentType; response: Anthropic.Message }
   | { type: "tool_start"; name: string; input: unknown }
   | { type: "tool_end"; name: string; content: string }
   | { type: "tool_failed"; name: string; message: string };
@@ -60,15 +62,15 @@ export async function runAgent(
     iterations++;
     onEvent({ type: "iteration", n: iterations });
 
-    onEvent({ type: "llm_response_start" });
+    onEvent({ type: "llm_response_start", agent_type: "research_agent" });
     const llm_response = await anthropicClient.messages.create({
       model: MODEL,
       max_tokens: 16000,
-      system: SYSTEM_PROMPT,
+      system: RESEARCH_AGENT_PROMPT,
       tools: toolSchemas,
       messages,
     });
-    onEvent({ type: "llm_response_end", response: llm_response });
+    onEvent({ type: "llm_response_end", agent_type: "research_agent", response: llm_response });
 
     messages.push({ role: Role.assistant, content: llm_response.content });
 
@@ -109,6 +111,7 @@ export async function runAgent(
   }
 
   // Polish the draft before showing it to the analyst.
+  onEvent({ type: "llm_response_start", agent_type: "editor" });
   const edited = await anthropicClient.messages.create({
     model: MODEL,
     max_tokens: 16000,
@@ -120,6 +123,7 @@ export async function runAgent(
       },
     ],
   });
+  onEvent({ type: "llm_response_end", agent_type: "editor", response: edited });
 
   return { answer: textOf(edited), iterations };
 }
