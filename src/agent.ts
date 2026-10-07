@@ -8,7 +8,8 @@ import { Role } from "./role.ts";
 import { runTools } from "./runTools.ts";
 import { toolSchemas } from "./tools.ts";
 
-const MODEL = process.env.ROGO_MODEL ?? "claude-sonnet-5";
+const AGENT_MODEL = process.env.ROGO_AGENT_MODEL ?? "claude-sonnet-5";
+const EDITOR_MODEL = process.env.ROGO_EDITOR_MODEL ?? "claude-haiku-4-5";
 const MAX_ITERATIONS = 12;
 
 const anthropicClient = new Anthropic();
@@ -65,7 +66,7 @@ export async function runAgent(
 
     onEvent({ type: "llm_response_start", agent_type: "research_agent" });
     const llm_response = await anthropicClient.messages.create({
-      model: MODEL,
+      model: AGENT_MODEL,
       max_tokens: 16000,
       system: RESEARCH_AGENT_PROMPT,
       tools: toolSchemas,
@@ -97,7 +98,7 @@ export async function runAgent(
   // Polish the draft before showing it to the analyst.
   onEvent({ type: "llm_response_start", agent_type: "editor" });
   const edited = await anthropicClient.messages.create({
-    model: MODEL,
+    model: EDITOR_MODEL,
     max_tokens: 16000,
     system: EDITOR_PROMPT,
     messages: [
