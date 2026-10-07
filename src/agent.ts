@@ -5,7 +5,8 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { companies } from "./data.ts";
 import { Role } from "./role.ts";
-import { executeTool, toolSchemas } from "./tools.ts";
+import { runTools } from "./runTools.ts";
+import { toolSchemas } from "./tools.ts";
 
 const MODEL = process.env.ROGO_MODEL ?? "claude-sonnet-5";
 const MAX_ITERATIONS = 12;
@@ -83,24 +84,7 @@ export async function runAgent(
       break;
     }
 
-    const toolResults: Anthropic.ToolResultBlockParam[] = [];
-
-    for (const use of toolUses) {
-      onEvent({ type: "tool_start", name: use.name, input: use.input });
-
-      let content: string;
-      try {
-        const output = await executeTool(use.name, use.input as Record<string, unknown>);
-        content = JSON.stringify(output);
-      } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
-        content = `${use.name} returned: ${message}`;
-        onEvent({ type: "tool_failed", name: use.name, message });
-      }
-
-      onEvent({ type: "tool_end", name: use.name, content });
-      toolResults.push({ type: "tool_result", tool_use_id: use.id, content });
-    }
+    const toolResults = await runTools(toolUses, onEvent);
 
     messages.push({ role: Role.user, content: toolResults });
   }
