@@ -55,7 +55,7 @@ export const toolSchemas: Anthropic.Tool[] = [
     input_schema: {
       type: "object",
       properties: {
-        query: { type: "string", description: "Keywords to search for." },
+        query: { type: "string", description: "Keywords to search for." }, /* IDEA: why not just have the tool take in an array of terms, and then tell the agent it's max 6 */
         company: {
           type: "string",
           description: "Optional. Restrict the search to one company.",
@@ -66,8 +66,9 @@ export const toolSchemas: Anthropic.Tool[] = [
   },
 ];
 
+/* IDEA: search by fuzzy matching the company name aka allow for regex searching */
 async function searchCompanies(query: string) {
-  await sleep(250);
+  await sleep(250); /* IDEA: remove this sleep ? */
   const needle = String(query).toLowerCase();
   const matches = companies.filter((c) => c.name.toLowerCase().includes(needle));
   return matches.map((c) => ({
@@ -86,6 +87,7 @@ async function getCompanyProfile(company: string) {
   return match;
 }
 
+/* IDEA: drop provenance section not useful */
 async function getFinancials(company: string) {
   await sleep(800);
   const record = financials.find((f) => f.company === company);
@@ -95,6 +97,8 @@ async function getFinancials(company: string) {
   return record;
 }
 
+/* IDEA: tool for searching for documents related to filings a company has */
+/* IDEA: we should allow getting all docs for a company */
 async function searchDocuments(query: string, company?: string) {
   await sleep(700);
 
@@ -111,7 +115,7 @@ async function searchDocuments(query: string, company?: string) {
     : documents;
 
   const scored = pool.map((doc) => {
-    const haystack = `${doc.title} ${doc.body}`.toLowerCase();
+    const haystack = `${doc.title} ${doc.body}`.toLowerCase(); /* IDEA: add the form and other fields in here as well */
     let score = 0;
     for (const term of terms) {
       if (haystack.includes(term.toLowerCase())) score += 1;
