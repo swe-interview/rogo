@@ -68,7 +68,7 @@ export const toolSchemas: Anthropic.Tool[] = [
 
 /* IDEA: search by fuzzy matching the company name aka allow for regex searching */
 async function searchCompanies(query: string) {
-  await sleep(250); /* IDEA: remove this sleep ? */
+  await sleep(250);
   const needle = String(query).toLowerCase();
   const matches = companies.filter((c) => c.name.toLowerCase().includes(needle));
   return matches.map((c) => ({
