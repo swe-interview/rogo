@@ -8,6 +8,8 @@
     - The model already writes lists, tables, and bold; the UI was showing that as raw text.
 - Timestamped logs for model calls and tool output.
     - Makes it obvious whether time is in the model or a tool, and whether the research agent or the editor is the slow call.
+- Document search tells the agent the query is capped at 6 keywords.
+    - `searchDocuments` rejects more than 6 terms. The tool and `query` descriptions now say that, so the agent stops sending longer keyword lists.
 
 ## Todo
 
@@ -20,3 +22,5 @@
 - when tools fail add hints for the agent - like maybe try searchCompanies
 
 - Turn the tool sleeps back on. They are commented out so logs show model time, not fake API delay.
+
+- continued conversation (right now every user message is like a fresh question)

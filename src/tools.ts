@@ -51,11 +51,15 @@ export const toolSchemas: Anthropic.Tool[] = [
   {
     name: "searchDocuments",
     description:
-      "Keyword search over earnings call transcripts, filing excerpts and press releases.",
+      "Keyword search over earnings call transcripts, filing excerpts and press releases. The query is capped at 6 keywords; do not pass more than 6. Longer queries are rejected.",
     input_schema: {
       type: "object",
       properties: {
-        query: { type: "string", description: "Keywords to search for." }, /* IDEA: why not just have the tool take in an array of terms, and then tell the agent it's max 6 */
+        query: {
+          type: "string",
+          description:
+            "At most 6 keywords, separated by spaces. Queries with more than 6 keywords are rejected.",
+        }, /* IDEA: why not just have the tool take in an array of terms, and then tell the agent it's max 6 */
         company: {
           type: "string",
           description: "Optional. Restrict the search to one company.",
