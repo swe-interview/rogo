@@ -59,7 +59,7 @@ export const toolSchemas: Anthropic.Tool[] = [
   {
     name: "searchDocuments",
     description:
-      "Keyword search over earnings call transcripts, filing excerpts and press releases. The query is capped at 6 keywords; do not pass more than 6. Longer queries are rejected. A keyword only matches documents that contain it. If a company is set and nothing matches, the tool returns that company's document ids, titles, and total. To read the documents, use listDocuments.",
+      "Keyword search over earnings call transcripts, filing excerpts and press releases. The query is capped at 6 keywords; do not pass more than 6. Longer queries are rejected. Any shared word matches, and each hit includes the keywords that matched. If a company is set and nothing matches, the tool returns that company's document ids, titles, and total. To read the documents, use listDocuments.",
     input_schema: {
       type: "object",
       properties: {
@@ -180,11 +180,8 @@ async function searchDocuments(query: string, company?: string) {
 
   const scored = pool.map((doc) => {
     const haystack = `${doc.title} ${doc.body}`.toLowerCase(); /* IDEA: add the form and other fields in here as well */
-    let score = 0;
-    for (const term of terms) {
-      if (haystack.includes(term.toLowerCase())) score += 1;
-    }
-    return { doc, score };
+    const matchedTerms = terms.filter((term) => haystack.includes(term.toLowerCase()));
+    return { doc, score: matchedTerms.length, matchedTerms };
   });
 
   const hits = scored
@@ -206,7 +203,7 @@ async function searchDocuments(query: string, company?: string) {
     };
   }
 
-  return hits.map((s) => s.doc);
+  return hits.map((s) => ({ ...s.doc, matchedTerms: s.matchedTerms }));
 }
 
 export async function executeTool(

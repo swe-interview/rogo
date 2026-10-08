@@ -16,6 +16,8 @@
     - Umbrella's filings never say "risk", so a keyword search comes back empty. The agent can read the complete set in one call.
 - A company-scoped document search with no keyword hits returns that company's document ids, titles, and total.
     - An empty list made the agent invent more keyword queries. The result points it at `listDocuments` instead.
+- Document search results include the keywords that actually matched.
+    - A hit can be a single shared word, so a cybersecurity query matched Umbrella only because the filing says "patient". The matched terms make that visible.
 
 ## Todo
 
