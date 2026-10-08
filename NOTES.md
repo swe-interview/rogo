@@ -14,6 +14,8 @@
     - `getCompanyProfile`, `getFinancials`, and the document-search company filter share one resolver. Several matches come back as the candidate list, so "Acme" is not silently treated as one company. `searchCompanies` matches tickers as well as names.
 - `listDocuments` returns every document on file for one company, including the total.
     - Umbrella's filings never say "risk", so a keyword search comes back empty. The agent can read the complete set in one call.
+- A company-scoped document search with no keyword hits returns that company's document ids, titles, and total.
+    - An empty list made the agent invent more keyword queries. The result points it at `listDocuments` instead.
 
 ## Todo
 

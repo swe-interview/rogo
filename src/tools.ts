@@ -59,7 +59,7 @@ export const toolSchemas: Anthropic.Tool[] = [
   {
     name: "searchDocuments",
     description:
-      "Keyword search over earnings call transcripts, filing excerpts and press releases. The query is capped at 6 keywords; do not pass more than 6. Longer queries are rejected. A keyword only matches documents that contain it. To read everything a company filed, use listDocuments.",
+      "Keyword search over earnings call transcripts, filing excerpts and press releases. The query is capped at 6 keywords; do not pass more than 6. Longer queries are rejected. A keyword only matches documents that contain it. If a company is set and nothing matches, the tool returns that company's document ids, titles, and total. To read the documents, use listDocuments.",
     input_schema: {
       type: "object",
       properties: {
@@ -175,9 +175,8 @@ async function searchDocuments(query: string, company?: string) {
     );
   }
 
-  const pool = company?.trim()
-    ? documents.filter((d) => d.company === resolveCompany(company).name)
-    : documents;
+  const scoped = company?.trim() ? resolveCompany(company) : undefined;
+  const pool = scoped ? documents.filter((d) => d.company === scoped.name) : documents;
 
   const scored = pool.map((doc) => {
     const haystack = `${doc.title} ${doc.body}`.toLowerCase(); /* IDEA: add the form and other fields in here as well */
@@ -188,11 +187,26 @@ async function searchDocuments(query: string, company?: string) {
     return { doc, score };
   });
 
-  return scored
+  const hits = scored
     .filter((s) => s.score > 0)
     .sort((a, b) => b.score - a.score)
-    .slice(0, 5)
-    .map((s) => s.doc);
+    .slice(0, 5);
+
+  if (hits.length === 0 && scoped) {
+    return {
+      matches: [],
+      total: pool.length,
+      note: `No documents contain those keywords. ${scoped.name} has ${pool.length} documents on file. Use listDocuments to read them.`,
+      documents: pool.map((d) => ({
+        id: d.id,
+        form: d.form,
+        title: d.title,
+        date: d.date,
+      })),
+    };
+  }
+
+  return hits.map((s) => s.doc);
 }
 
 export async function executeTool(
