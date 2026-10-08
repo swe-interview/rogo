@@ -59,7 +59,7 @@ export const toolSchemas: Anthropic.Tool[] = [
   {
     name: "searchDocuments",
     description:
-      "Keyword search over earnings call transcripts, filing excerpts and press releases. The query is capped at 6 keywords; do not pass more than 6. Longer queries are rejected.",
+      "Keyword search over earnings call transcripts, filing excerpts and press releases. The query is capped at 6 keywords; do not pass more than 6. Longer queries are rejected. A keyword only matches documents that contain it. To read everything a company filed, use listDocuments.",
     input_schema: {
       type: "object",
       properties: {
@@ -75,6 +75,22 @@ export const toolSchemas: Anthropic.Tool[] = [
         },
       },
       required: ["query"],
+    },
+  },
+  {
+    name: "listDocuments",
+    description:
+      "List every research document we hold for one company, including the body. Use this to read what a company filed or said. The result includes a total and is the complete set. Keyword search only finds documents that contain the given words.",
+    input_schema: {
+      type: "object",
+      properties: {
+        company: {
+          type: "string",
+          description:
+            "Company name or ticker. If several companies match, the tool lists the candidates instead of documents.",
+        },
+      },
+      required: ["company"],
     },
   },
 ];
@@ -136,8 +152,18 @@ async function getFinancials(company: string) {
   return record;
 }
 
+async function listDocuments(company: string) {
+  const match = resolveCompany(company);
+  const docs = documents.filter((d) => d.company === match.name);
+  return {
+    company: match.name,
+    ticker: match.ticker,
+    total: docs.length,
+    documents: docs,
+  };
+}
+
 /* IDEA: tool for searching for documents related to filings a company has */
-/* IDEA: we should allow getting all docs for a company */
 async function searchDocuments(query: string, company?: string) {
   // await sleep(700);
 
@@ -182,6 +208,8 @@ export async function executeTool(
       return getFinancials(input.company as string);
     case "searchDocuments":
       return searchDocuments(input.query as string, input.company as string | undefined);
+    case "listDocuments":
+      return listDocuments(input.company as string);
     default:
       throw new ToolError(`unknown tool "${name}"`);
   }

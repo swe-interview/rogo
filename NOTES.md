@@ -12,8 +12,12 @@
     - `searchDocuments` rejects more than 6 terms. The tool and `query` descriptions now say that, so the agent stops sending longer keyword lists.
 - Company lookups accept a ticker, an exact name, or a unique part of either.
     - `getCompanyProfile`, `getFinancials`, and the document-search company filter share one resolver. Several matches come back as the candidate list, so "Acme" is not silently treated as one company. `searchCompanies` matches tickers as well as names.
+- `listDocuments` returns every document on file for one company, including the total.
+    - Umbrella's filings never say "risk", so a keyword search comes back empty. The agent can read the complete set in one call.
 
 ## Todo
+
+- Paginate `listDocuments` if a company has more documents than we want to return at once. `total` is already on the response.
 
 - Drop unused financial provenance (`pipelineVersion`, `checksum`). Neither changes an answer. Keep `warnings` — Initech's unfiled FY2025 should.
 
