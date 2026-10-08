@@ -4,7 +4,7 @@
  */
 
 import type Anthropic from "@anthropic-ai/sdk";
-import { companies, documents, financials } from "./data.ts";
+import { type Company, companies, documents, financials } from "./data.ts";
 
 /** Thrown when a tool cannot service a request. */
 export class ToolError extends Error {}
@@ -15,11 +15,11 @@ export const toolSchemas: Anthropic.Tool[] = [
   {
     name: "searchCompanies",
     description:
-      "Search the coverage universe for companies matching a name. Returns the company name, ticker and sector for each match.",
+      "Search the coverage universe by company name or ticker. Returns the company name, ticker and sector for every match.",
     input_schema: {
       type: "object",
       properties: {
-        query: { type: "string", description: "A company name or part of one." },
+        query: { type: "string", description: "A company name, ticker, or part of one." },
       },
       required: ["query"],
     },
@@ -31,7 +31,11 @@ export const toolSchemas: Anthropic.Tool[] = [
     input_schema: {
       type: "object",
       properties: {
-        company: { type: "string", description: "The company name." },
+        company: {
+          type: "string",
+          description:
+            "Company name or ticker. If several companies match, the tool lists the candidates instead of guessing.",
+        },
       },
       required: ["company"],
     },
@@ -43,7 +47,11 @@ export const toolSchemas: Anthropic.Tool[] = [
     input_schema: {
       type: "object",
       properties: {
-        company: { type: "string", description: "The company name." },
+        company: {
+          type: "string",
+          description:
+            "Company name or ticker. If several companies match, the tool lists the candidates instead of guessing.",
+        },
       },
       required: ["company"],
     },
@@ -62,7 +70,8 @@ export const toolSchemas: Anthropic.Tool[] = [
         }, /* IDEA: why not just have the tool take in an array of terms, and then tell the agent it's max 6 */
         company: {
           type: "string",
-          description: "Optional. Restrict the search to one company.",
+          description:
+            "Optional. Company name or ticker. If several companies match, the tool lists the candidates instead of searching.",
         },
       },
       required: ["query"],
@@ -70,11 +79,40 @@ export const toolSchemas: Anthropic.Tool[] = [
   },
 ];
 
+function companyLabel(company: Company): string {
+  return `${company.name} (${company.ticker})`;
+}
+
+/** Ticker, exact name, or a unique substring of either. Several matches are an error. */
+function resolveCompany(input: string): Company {
+  const needle = String(input).trim().toLowerCase();
+  if (!needle) {
+    throw new ToolError("company is required");
+  }
+
+  const matches = companies.filter(
+    (c) =>
+      c.ticker.toLowerCase() === needle ||
+      c.name.toLowerCase() === needle ||
+      c.name.toLowerCase().includes(needle) ||
+      c.ticker.toLowerCase().includes(needle),
+  );
+  if (matches.length === 1) return matches[0];
+  if (matches.length === 0) {
+    throw new ToolError(`no company found for "${input}"`);
+  }
+  throw new ToolError(
+    `"${input}" matches more than one company: ${matches.map(companyLabel).join(", ")}. Pass the full company name.`,
+  );
+}
+
 /* IDEA: search by fuzzy matching the company name aka allow for regex searching */
 async function searchCompanies(query: string) {
   // await sleep(250);
-  const needle = String(query).toLowerCase();
-  const matches = companies.filter((c) => c.name.toLowerCase().includes(needle));
+  const needle = String(query).trim().toLowerCase();
+  const matches = companies.filter(
+    (c) => c.name.toLowerCase().includes(needle) || c.ticker.toLowerCase().includes(needle),
+  );
   return matches.map((c) => ({
     name: c.name,
     ticker: c.ticker,
@@ -84,19 +122,16 @@ async function searchCompanies(query: string) {
 
 async function getCompanyProfile(company: string) {
   // await sleep(450);
-  const match = companies.find((c) => c.name === company);
-  if (!match) {
-    throw new ToolError(`no profile found for "${company}"`);
-  }
-  return match;
+  return resolveCompany(company);
 }
 
 /* IDEA: drop provenance section not useful */
 async function getFinancials(company: string) {
   // await sleep(800);
-  const record = financials.find((f) => f.company === company);
+  const match = resolveCompany(company);
+  const record = financials.find((f) => f.company === match.name);
   if (!record) {
-    throw new ToolError(`no financials found for "${company}"`);
+    throw new ToolError(`no financials found for "${match.name}"`);
   }
   return record;
 }
@@ -114,8 +149,8 @@ async function searchDocuments(query: string, company?: string) {
     );
   }
 
-  const pool = company
-    ? documents.filter((d) => d.company === company)
+  const pool = company?.trim()
+    ? documents.filter((d) => d.company === resolveCompany(company).name)
     : documents;
 
   const scored = pool.map((doc) => {

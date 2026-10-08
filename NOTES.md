@@ -10,14 +10,14 @@
     - Makes it obvious whether time is in the model or a tool, and whether the research agent or the editor is the slow call.
 - Document search tells the agent the query is capped at 6 keywords.
     - `searchDocuments` rejects more than 6 terms. The tool and `query` descriptions now say that, so the agent stops sending longer keyword lists.
+- Company lookups accept a ticker, an exact name, or a unique part of either.
+    - `getCompanyProfile`, `getFinancials`, and the document-search company filter share one resolver. Several matches come back as the candidate list, so "Acme" is not silently treated as one company. `searchCompanies` matches tickers as well as names.
 
 ## Todo
 
 - Drop unused financial provenance (`pipelineVersion`, `checksum`). Neither changes an answer. Keep `warnings` — Initech's unfiled FY2025 should.
 
 - Open a filing by id. The profile only lists filings. The agent can read one only if an excerpt is already in `documents` and a keyword search hits it.
-
-- Fuzzy company search; document search past the 6-term cap. Names have to match exactly enough for `includes`, and a long query throws instead of searching.
 
 - when tools fail add hints for the agent - like maybe try searchCompanies
 
