@@ -25,6 +25,8 @@ tool improvements
     - A query for "8-K" missed Initech's preliminary results, because that string is only on the form field. The Acme Robotics press release was the same: the title never says "press release".
 - Tool failures set `is_error` and name the next call
     - A miss came back as a normal result, so the model treated "no company found" as data. The message now says to call `searchCompanies`, and a query over 6 keywords says to retry with 6 or call `listDocuments`.
+- `listDocuments` is the complete text for a company, so do not keyword-search it afterward
+    - Umbrella's risk question listed both filings, then searched "risk factors reimbursement regulatory integration" and got the same two documents back, matched on one word each.
 
 ## Todo
 

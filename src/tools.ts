@@ -80,7 +80,7 @@ export const toolSchemas: Anthropic.Tool[] = [
   {
     name: "listDocuments",
     description:
-      "List every research document we hold for one company, including the body. Use this to read what a company filed or said. The result includes a total and is the complete set. Keyword search only finds documents that contain the given words.",
+      "List every research document we hold for one company, including the body. Use this to read what a company filed or said. The result includes a total and is the complete text we hold for that company. Do not follow it with a keyword search of the same company; search will not uncover additional documents or text.",
     input_schema: {
       type: "object",
       properties: {
