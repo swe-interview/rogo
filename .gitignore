@@ -19,6 +19,9 @@ dist-ssr
 # Tests
 coverage
 
+# Agent traces
+data/
+
 # Logs
 logs
 *.log

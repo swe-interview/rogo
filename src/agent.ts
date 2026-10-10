@@ -34,9 +34,9 @@ export type AgentType = "research_agent" | "editor";
 export type AgentEvent =
   | { type: "iteration"; n: number }
   | { type: "llm_response_start"; agent_type: AgentType }
-  | { type: "llm_response_end"; agent_type: AgentType; response: Anthropic.Message }
+  | { type: "llm_response_end"; agent_type: AgentType; response: Anthropic.Message; ms: number }
   | { type: "tool_start"; name: string; input: unknown }
-  | { type: "tool_end"; name: string; content: string }
+  | { type: "tool_end"; name: string; content: string; ms: number }
   | { type: "tool_failed"; name: string; message: string };
 
 export interface AgentResult {
@@ -65,6 +65,7 @@ export async function runAgent(
     onEvent({ type: "iteration", n: iterations });
 
     onEvent({ type: "llm_response_start", agent_type: "research_agent" });
+    const researchStartedAt = Date.now();
     const llm_response = await anthropicClient.messages.create({
       model: AGENT_MODEL,
       max_tokens: 16000,
@@ -72,7 +73,12 @@ export async function runAgent(
       tools: toolSchemas,
       messages,
     });
-    onEvent({ type: "llm_response_end", agent_type: "research_agent", response: llm_response });
+    onEvent({
+      type: "llm_response_end",
+      agent_type: "research_agent",
+      response: llm_response,
+      ms: Date.now() - researchStartedAt,
+    });
 
     messages.push({ role: Role.assistant, content: llm_response.content });
 
@@ -97,6 +103,7 @@ export async function runAgent(
 
   // Polish the draft before showing it to the analyst.
   onEvent({ type: "llm_response_start", agent_type: "editor" });
+  const editorStartedAt = Date.now();
   const edited = await anthropicClient.messages.create({
     model: EDITOR_MODEL,
     max_tokens: 16000,
@@ -108,7 +115,12 @@ export async function runAgent(
       },
     ],
   });
-  onEvent({ type: "llm_response_end", agent_type: "editor", response: edited });
+  onEvent({
+    type: "llm_response_end",
+    agent_type: "editor",
+    response: edited,
+    ms: Date.now() - editorStartedAt,
+  });
 
   return { answer: textOf(edited), iterations };
 }

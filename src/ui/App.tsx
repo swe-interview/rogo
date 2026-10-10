@@ -5,6 +5,7 @@ import remarkGfm from "remark-gfm";
 interface Message {
   role: "user" | "assistant";
   text: string;
+  traceId?: string;
 }
 
 const EXAMPLES = [
@@ -35,7 +36,11 @@ export function App() {
       const data = await res.json();
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", text: data.answer ?? data.error },
+        {
+          role: "assistant",
+          text: data.answer ?? data.error,
+          traceId: data.traceId,
+        },
       ]);
     } catch (err) {
       setMessages((prev) => [
@@ -50,7 +55,10 @@ export function App() {
   return (
     <div className="app">
       <header>
-        <h1>Rogo Research</h1>
+        <div className="header-row">
+          <h1>Rogo Research</h1>
+          <a href="/traces">Traces</a>
+        </div>
         <p>Ask a question about a company in our coverage universe.</p>
       </header>
 
@@ -66,11 +74,23 @@ export function App() {
         )}
 
         {messages.map((message, i) => (
-          <div key={i} className={`bubble ${message.role}`}>
-            {message.role === "assistant" ? (
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>{message.text}</ReactMarkdown>
-            ) : (
-              message.text
+          <div key={i} className={`turn ${message.role}`}>
+            <div className={`bubble ${message.role}`}>
+              {message.role === "assistant" ? (
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>{message.text}</ReactMarkdown>
+              ) : (
+                message.text
+              )}
+            </div>
+            {message.traceId && (
+              <a
+                className="trace-link"
+                href={`/traces/${message.traceId}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                View trace
+              </a>
             )}
           </div>
         ))}

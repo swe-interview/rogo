@@ -11,6 +11,8 @@ UI quality
 
 observability
 - Log improvements - adding timestamps, tool input/output, LLM start/end
+- Each chat stores its tool trace in SQLite and links to a trace page
+    - The console log is the only place the tool calls showed up, and it scrolls away. The answer now links to that same timeline.
 
 tool improvements
 - Document search description says the query is capped at 6 keywords
@@ -35,6 +37,12 @@ tool improvements
 ## Todo
 
 - Paginate `listDocuments` when a company has more documents than one response should hold
+    - did not do b/c mostly useful for scale, not useful for this small fake dataset
 - Open a filing by id. The profile lists filings, but the text is only reachable if a keyword search hits it
-- Turn tool sleeps back on so logs include fake API delay, not just model time
+    - right not company profiles have filing IDs but there's no way to look up those filings by ID
 - Keep conversation history. Each message is currently a new question
+    - chose to prioritize simple answer -> response vs the more complicated long running chat case
+- Add citations - drafts are structured responses with content (citation tags) and then a list of citations. And there is a guardrail that checks if the agent quoted a citation that existed or not
+
+## Reminders
+- Turn tool sleeps back on so logs include fake API delay, not just model time

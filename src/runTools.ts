@@ -8,6 +8,7 @@ export async function runTools(
 ): Promise<Anthropic.ToolResultBlockParam[]> {
   return Promise.all(
     toolUses.map(async (use) => {
+      const startedAt = Date.now();
       onEvent({ type: "tool_start", name: use.name, input: use.input });
 
       let content: string;
@@ -22,7 +23,7 @@ export async function runTools(
         onEvent({ type: "tool_failed", name: use.name, message });
       }
 
-      onEvent({ type: "tool_end", name: use.name, content });
+      onEvent({ type: "tool_end", name: use.name, content, ms: Date.now() - startedAt });
       return {
         type: "tool_result" as const,
         tool_use_id: use.id,
