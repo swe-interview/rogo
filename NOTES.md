@@ -29,11 +29,12 @@ tool improvements
     - A miss came back as a normal result, so the model treated "no company found" as data. The message now says to call `searchCompanies`, and a query over 6 keywords says to retry with 6 or call `listDocuments`.
 - `listDocuments` is the complete text for a company, so do not keyword-search it afterward
     - Umbrella's risk question listed both filings, then searched "risk factors reimbursement regulatory integration" and got the same two documents back, matched on one word each.
+- Financial results omit `pipelineVersion` and `checksum`; Initech's warnings stay
+    - Five `getFinancials` calls were the right shape for "who is growing fastest", but each record carried warehouse provenance the answer never used.
 
 ## Todo
 
 - Paginate `listDocuments` when a company has more documents than one response should hold
-- Drop financial provenance (`pipelineVersion`, `checksum`); keep Initech's unfiled-FY2025 warnings
 - Open a filing by id. The profile lists filings, but the text is only reachable if a keyword search hits it
 - Turn tool sleeps back on so logs include fake API delay, not just model time
 - Keep conversation history. Each message is currently a new question

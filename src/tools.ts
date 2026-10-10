@@ -142,7 +142,6 @@ async function getCompanyProfile(company: string) {
   return resolveCompany(company);
 }
 
-/* IDEA: drop provenance section not useful */
 async function getFinancials(company: string) {
   // await sleep(800);
   const match = resolveCompany(company);
@@ -152,7 +151,14 @@ async function getFinancials(company: string) {
       `no financials found for "${match.name}". There is no financial record on file for this company.`,
     );
   }
-  return record;
+  return {
+    ...record,
+    provenance: {
+      source: record.provenance.source,
+      ingestedAt: record.provenance.ingestedAt,
+      restatements: record.provenance.restatements,
+    },
+  };
 }
 
 async function listDocuments(company: string) {
