@@ -21,6 +21,8 @@ tool improvements
     - An empty `[]` gave the agent nothing to do except invent another query. The same two Umbrella documents were fetched again and again under different wording.
 - Search hits include which keywords matched, since one shared word is enough
     - A cybersecurity query matched Umbrella's 10-K only because the excerpt says "patient". The result looked like a real hit.
+- Document search matches form and date as well as title and body
+    - A query for "8-K" missed Initech's preliminary results, because that string is only on the form field. The Acme Robotics press release was the same: the title never says "press release".
 
 ## Todo
 
