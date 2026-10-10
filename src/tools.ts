@@ -184,7 +184,7 @@ async function searchDocuments(query: string, company?: string) {
   const hits = scored
     .filter((s) => s.score > 0)
     .sort((a, b) => b.score - a.score)
-    .slice(0, 5);
+    .slice(0, 5); /* IDEA: allow the agent to request more results */
 
   if (hits.length === 0 && scoped) {
     return {
