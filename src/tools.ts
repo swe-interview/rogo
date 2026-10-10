@@ -67,7 +67,7 @@ export const toolSchemas: Anthropic.Tool[] = [
           type: "string",
           description:
             "At most 6 keywords, separated by spaces. Queries with more than 6 keywords are rejected.",
-        }, /* IDEA: why not just have the tool take in an array of terms, and then tell the agent it's max 6 */
+        },
         company: {
           type: "string",
           description:
@@ -150,6 +150,7 @@ async function getFinancials(company: string) {
 }
 
 async function listDocuments(company: string) {
+  // await sleep(700);
   const match = resolveCompany(company);
   const docs = documents.filter((d) => d.company === match.name);
   return {
@@ -160,7 +161,6 @@ async function listDocuments(company: string) {
   };
 }
 
-/* IDEA: tool for searching for documents related to filings a company has */
 async function searchDocuments(query: string, company?: string) {
   // await sleep(700);
 
