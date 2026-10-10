@@ -43,7 +43,7 @@ export const toolSchemas: Anthropic.Tool[] = [
   {
     name: "getFinancials",
     description:
-      "Get annual and quarterly financials for a company: revenue, gross margin, operating income, net income and free cash flow.",
+      "Get annual financials for a company: revenue, year-over-year revenue growth, gross margin, operating income, operating margin, net income and free cash flow. Quarters are a fixed seasonal split of the annual number, not independent evidence; omit them unless the question is about a specific quarter.",
     input_schema: {
       type: "object",
       properties: {
@@ -51,6 +51,11 @@ export const toolSchemas: Anthropic.Tool[] = [
           type: "string",
           description:
             "Company name or ticker. If several companies match, the tool lists the candidates instead of guessing.",
+        },
+        includeQuarterly: {
+          type: "boolean",
+          description:
+            "Include quarterly figures. Default false. Only set this when the question asks about a quarter.",
         },
       },
       required: ["company"],
@@ -142,7 +147,12 @@ async function getCompanyProfile(company: string) {
   return resolveCompany(company);
 }
 
-async function getFinancials(company: string) {
+function round(n: number, places = 3): number {
+  const f = 10 ** places;
+  return Math.round(n * f) / f;
+}
+
+async function getFinancials(company: string, includeQuarterly = false) {
   // await sleep(800);
   const match = resolveCompany(company);
   const record = financials.find((f) => f.company === match.name);
@@ -151,13 +161,28 @@ async function getFinancials(company: string) {
       `no financials found for "${match.name}". There is no financial record on file for this company.`,
     );
   }
+
+  const annual = record.annual.map((row, i) => {
+    const prev = i > 0 ? record.annual[i - 1] : undefined;
+    const revenueGrowth =
+      row.revenue != null && prev?.revenue != null && prev.revenue !== 0
+        ? round((row.revenue - prev.revenue) / prev.revenue)
+        : null;
+    const operatingMargin =
+      row.revenue != null && row.operatingIncome != null && row.revenue !== 0
+        ? round(row.operatingIncome / row.revenue)
+        : null;
+    return { ...row, revenueGrowth, operatingMargin };
+  });
+
   return {
-    ...record,
-    provenance: {
-      source: record.provenance.source,
-      ingestedAt: record.provenance.ingestedAt,
-      restatements: record.provenance.restatements,
-    },
+    company: record.company,
+    ticker: record.ticker,
+    currency: record.currency,
+    unit: record.unit,
+    annual,
+    ...(includeQuarterly ? { quarterly: record.quarterly } : {}),
+    ...(record.warnings ? { warnings: record.warnings } : {}),
   };
 }
 
@@ -225,7 +250,7 @@ export async function executeTool(
     case "getCompanyProfile":
       return getCompanyProfile(input.company as string);
     case "getFinancials":
-      return getFinancials(input.company as string);
+      return getFinancials(input.company as string, Boolean(input.includeQuarterly));
     case "searchDocuments":
       return searchDocuments(input.query as string, input.company as string | undefined);
     case "listDocuments":

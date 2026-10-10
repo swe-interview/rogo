@@ -29,8 +29,8 @@ tool improvements
     - A miss came back as a normal result, so the model treated "no company found" as data. The message now says to call `searchCompanies`, and a query over 6 keywords says to retry with 6 or call `listDocuments`.
 - `listDocuments` is the complete text for a company, so do not keyword-search it afterward
     - Umbrella's risk question listed both filings, then searched "risk factors reimbursement regulatory integration" and got the same two documents back, matched on one word each.
-- Financial results omit `pipelineVersion` and `checksum`; Initech's warnings stay
-    - Five `getFinancials` calls were the right shape for "who is growing fastest", but each record carried warehouse provenance the answer never used.
+- `getFinancials` returns annual rows with revenue growth and operating margin, and drops provenance and quarters
+    - One company was about 2,700 characters, mostly quarters and warehouse fields. The fastest-grower question loaded all five. Quarters are a fixed split of the annual number, and the model was citing them as separate evidence. Initech's unfiled-FY2025 warnings stay.
 
 ## Todo
 
