@@ -43,6 +43,8 @@ tool improvements
 - Keep conversation history. Each message is currently a new question
     - chose to prioritize simple answer -> response vs the more complicated long running chat case
 - Add citations - drafts are structured responses with content (citation tags) and then a list of citations. And there is a guardrail that checks if the agent quoted a citation that existed or not
+- Guardrails around the editor fudging or changing numbers
+- Preventing hallucinating numbers - groundedness checks (or more tool calls wrapping math or data operations)
 
 ## Reminders
 - Turn tool sleeps back on so logs include fake API delay, not just model time
