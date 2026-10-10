@@ -3,6 +3,8 @@
 latency/cost
 - Calling tools in parallel
 - Expensive model (sonnet) for research, cheaper one for edit (haiku)
+- Editor rewrites the draft only, not the research transcript
+    - The universe question sent the editor 9,947 tokens of tool output. It turned "accelerating in dollar terms" and a gross-margin range into "the growth rate is speeding up" and "profit margin".
 
 UI quality
 - Render markdown in the chat instead of raw text

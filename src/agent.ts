@@ -104,7 +104,7 @@ export async function runAgent(
     messages: [
       {
         role: Role.user,
-        content: `Research transcript:\n${JSON.stringify(messages)}\n\nDraft answer:\n${draft}\n\nRewrite the draft answer.`,
+        content: `Draft answer:\n${draft}\n\nRewrite the draft answer.`,
       },
     ],
   });
