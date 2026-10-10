@@ -99,20 +99,20 @@ function companyLabel(company: Company): string {
   return `${company.name} (${company.ticker})`;
 }
 
-/** Ticker, exact name, or a unique substring of either. Several matches are an error. */
+function companiesMatching(needle: string): Company[] {
+  return companies.filter(
+    (c) => c.name.toLowerCase().includes(needle) || c.ticker.toLowerCase().includes(needle),
+  );
+}
+
+/** One company whose name or ticker contains the input. Several matches are an error. */
 function resolveCompany(input: string): Company {
   const needle = String(input).trim().toLowerCase();
   if (!needle) {
     throw new ToolError("company is required");
   }
 
-  const matches = companies.filter(
-    (c) =>
-      c.ticker.toLowerCase() === needle ||
-      c.name.toLowerCase() === needle ||
-      c.name.toLowerCase().includes(needle) ||
-      c.ticker.toLowerCase().includes(needle),
-  );
+  const matches = companiesMatching(needle);
   if (matches.length === 1) return matches[0];
   if (matches.length === 0) {
     throw new ToolError(`no company found for "${input}"`);
@@ -125,10 +125,7 @@ function resolveCompany(input: string): Company {
 /* IDEA: search by fuzzy matching the company name aka allow for regex searching */
 async function searchCompanies(query: string) {
   // await sleep(250);
-  const needle = String(query).trim().toLowerCase();
-  const matches = companies.filter(
-    (c) => c.name.toLowerCase().includes(needle) || c.ticker.toLowerCase().includes(needle),
-  );
+  const matches = companiesMatching(String(query).trim().toLowerCase());
   return matches.map((c) => ({
     name: c.name,
     ticker: c.ticker,
