@@ -23,12 +23,13 @@ tool improvements
     - A cybersecurity query matched Umbrella's 10-K only because the excerpt says "patient". The result looked like a real hit.
 - Document search matches form and date as well as title and body
     - A query for "8-K" missed Initech's preliminary results, because that string is only on the form field. The Acme Robotics press release was the same: the title never says "press release".
+- Tool failures set `is_error` and name the next call
+    - A miss came back as a normal result, so the model treated "no company found" as data. The message now says to call `searchCompanies`, and a query over 6 keywords says to retry with 6 or call `listDocuments`.
 
 ## Todo
 
 - Paginate `listDocuments` when a company has more documents than one response should hold
 - Drop financial provenance (`pipelineVersion`, `checksum`); keep Initech's unfiled-FY2025 warnings
 - Open a filing by id. The profile lists filings, but the text is only reachable if a keyword search hits it
-- On tool failure, hint the next step (for example `searchCompanies`)
 - Turn tool sleeps back on so logs include fake API delay, not just model time
 - Keep conversation history. Each message is currently a new question

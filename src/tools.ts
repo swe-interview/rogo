@@ -109,16 +109,18 @@ function companiesMatching(needle: string): Company[] {
 function resolveCompany(input: string): Company {
   const needle = String(input).trim().toLowerCase();
   if (!needle) {
-    throw new ToolError("company is required");
+    throw new ToolError("company is required. Pass a company name or ticker.");
   }
 
   const matches = companiesMatching(needle);
   if (matches.length === 1) return matches[0];
   if (matches.length === 0) {
-    throw new ToolError(`no company found for "${input}"`);
+    throw new ToolError(
+      `no company found for "${input}". Call searchCompanies with part of the name, then retry with the exact name or ticker.`,
+    );
   }
   throw new ToolError(
-    `"${input}" matches more than one company: ${matches.map(companyLabel).join(", ")}. Pass the full company name.`,
+    `"${input}" matches more than one company: ${matches.map(companyLabel).join(", ")}. Pass one of those full names.`,
   );
 }
 
@@ -144,7 +146,9 @@ async function getFinancials(company: string) {
   const match = resolveCompany(company);
   const record = financials.find((f) => f.company === match.name);
   if (!record) {
-    throw new ToolError(`no financials found for "${match.name}"`);
+    throw new ToolError(
+      `no financials found for "${match.name}". There is no financial record on file for this company.`,
+    );
   }
   return record;
 }
@@ -168,7 +172,7 @@ async function searchDocuments(query: string, company?: string) {
   // The upstream document index rejects long queries.
   if (terms.length > 6) {
     throw new ToolError(
-      `document search accepts at most 6 terms (received ${terms.length})`,
+      `document search accepts at most 6 terms (received ${terms.length}). Retry with at most 6 keywords, or call listDocuments for that company.`,
     );
   }
 
@@ -219,6 +223,8 @@ export async function executeTool(
     case "listDocuments":
       return listDocuments(input.company as string);
     default:
-      throw new ToolError(`unknown tool "${name}"`);
+      throw new ToolError(
+        `unknown tool "${name}". Use searchCompanies, getCompanyProfile, getFinancials, searchDocuments, or listDocuments.`,
+      );
   }
 }
