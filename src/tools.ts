@@ -59,7 +59,7 @@ export const toolSchemas: Anthropic.Tool[] = [
   {
     name: "searchDocuments",
     description:
-      "Keyword search over earnings call transcripts, filing excerpts and press releases. Matches title, body, form, and date, so a form like 8-K or a filing date is enough. The query is capped at 6 keywords; do not pass more than 6. Longer queries are rejected. Any shared word matches, and each hit includes the keywords that matched. If a company is set and nothing matches, the tool returns that company's document ids, titles, and total. To read the documents, use listDocuments.",
+      "Keyword search over earnings call transcripts, filing excerpts and press releases. Matches title, body, form, and date, so keywords can be a form like 8-K or a filing date. The query is capped at 6 keywords; do not pass more than 6. Longer queries are rejected. Any shared word matches, and each hit includes the keywords that matched. If a company is set and nothing matches, the tool returns that company's document ids, titles, and total. To read the documents, use listDocuments.",
     input_schema: {
       type: "object",
       properties: {
@@ -115,6 +115,8 @@ function resolveCompany(input: string): Company {
   const matches = companiesMatching(needle);
   if (matches.length === 1) return matches[0];
   if (matches.length === 0) {
+    /* IDEA: I guess this isn't great advice b/c search companies uses the same logic - maybe we could have a list companies tool instead which
+    gives you the "coverage universe" blob at the top of the system prompt */
     throw new ToolError(
       `no company found for "${input}". Call searchCompanies with part of the name, then retry with the exact name or ticker.`,
     );
